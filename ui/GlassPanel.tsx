@@ -89,22 +89,36 @@ export const GlassDeck: React.FC = () => {
     return 0; // Maintain original order for inactive tabs
   });
 
-  return (
-    <div className="onyx-glass-deck">
-      {orderedTabs.map((tab, index) => (
-        <GlassPanel
-          key={tab.id}
-          id={tab.id}
-          title={tab.title}
-          content={tab.content}
-          layerIndex={index} // Determines position in the Z-stack
-          isActive={tab.id === activeTabId}
-          onActivate={handleTabActivate}
-        />
-      ))}
+  const [isFocused, setIsFocused] = useState(false);
 
-      {/* Ghost White Zen-Bar for Hyper-Focus context */}
-      <div className="onyx-zen-bar" />
+  return (
+    <div className={`browser-shell ${isFocused ? 'focus-dimmed' : ''}`}>
+      <div className="title-bar">
+        <input
+          type="text"
+          className="omnibox"
+          placeholder="Search or ask Jules..."
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </div>
+
+      <div className="onyx-glass-deck">
+        {orderedTabs.map((tab, index) => (
+          <GlassPanel
+            key={tab.id}
+            id={tab.id}
+            title={tab.title}
+            content={tab.content}
+            layerIndex={index} // Determines position in the Z-stack
+            isActive={tab.id === activeTabId}
+            onActivate={handleTabActivate}
+          />
+        ))}
+
+        {/* Ghost White Zen-Bar for Hyper-Focus context */}
+        <div className="onyx-zen-bar" />
+      </div>
     </div>
   );
 };

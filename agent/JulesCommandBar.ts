@@ -19,7 +19,9 @@ export interface OnyxCommand {
 
 // Pre-defined secure actions the Agent can execute via the Command Bar
 export enum CommandAction {
+    EXTRACT_DOM = 'EXTRACT_DOM',
     SUMMARIZE_TABS = 'SUMMARIZE_TABS',
+    ANALYZE_UI = 'ANALYZE_UI',
     KILL_BACKGROUND_PROCESSES = 'KILL_BACKGROUND_PROCESSES',
     ACTIVATE_HYPER_FOCUS = 'ACTIVATE_HYPER_FOCUS',
     PRE_FETCH_LINK = 'PRE_FETCH_LINK',
@@ -91,9 +93,9 @@ export class JulesAgentController {
         this.uiElement.appendChild(inputField);
         document.body.appendChild(this.uiElement);
 
-        // Listen for the activation shortcut (e.g., Cmd/Ctrl + J)
+        // Listen for the activation shortcut (Alt + Space)
         window.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+            if (e.altKey && e.code === 'Space') {
                 e.preventDefault();
                 this.toggleCommandBar();
                 if (this.isListening && this.uiElement) {
@@ -166,9 +168,15 @@ export class JulesAgentController {
         let action = CommandAction.NAVIGATE;
         let payload: any = { query: input };
 
-        if (input.toLowerCase().includes('summarize') && input.toLowerCase().includes('tab')) {
+        if (input.toLowerCase().includes('özetle') && input.toLowerCase().includes('sekme')) {
             action = CommandAction.SUMMARIZE_TABS;
-            payload = { query: 'all' }; // Summarize all
+            payload = { count: 5, model: 'Gemini 3 Flash' }; // Summarize tabs via Gemini
+        } else if (input.toLowerCase().includes('fiyatları çek') || input.toLowerCase().includes('tablo yap')) {
+            action = CommandAction.EXTRACT_DOM;
+            payload = { target: 'prices', format: 'glass-table' }; // Extracts DOM
+        } else if (input.toLowerCase().includes('ekran görüntüsü') && input.toLowerCase().includes('analiz et')) {
+            action = CommandAction.ANALYZE_UI;
+            payload = { target: 'current-view', style: 'stitch' }; // Stitch-style UI analysis
         } else if (input.toLowerCase().includes('shield') || input.toLowerCase().includes('kill')) {
             action = CommandAction.KILL_BACKGROUND_PROCESSES;
             payload = { strictness: 'high' }; // Resource Shield

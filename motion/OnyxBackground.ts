@@ -111,36 +111,47 @@ export class OnyxMotionController {
                         (d - b) * u.x * u.y;
             }
 
+            uniform vec2 u_mouse_pos;
+
             void main() {
                 // Base Color: Deep Black (#080808)
                 vec3 baseColor = vec3(0.031, 0.031, 0.031);
 
                 // Interaction Coordinates
                 vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-                vec2 mouseNorm = u_mouse / u_resolution;
 
-                // Generative Ripple Algorithm (Simulating depth and fluid motion)
-                // Scale UV by time and velocity for the fluid effect
+                // Generative Ripple Algorithm (Dark Matter Fluid Simulation)
+                // Subtle waves moving at 0.05 speed
                 vec2 st = uv * 3.0;
-                st.y += u_time * 0.1 + u_velocity * 0.05; // Scroll velocity impacts flow
+                st.y += u_time * 0.05 + u_velocity * 0.05;
 
-                // Calculate distance to mouse cursor for the "Stitch-style" reactivity
-                float distToMouse = distance(uv, vec2(mouseNorm.x, 1.0 - mouseNorm.y));
+                // Pointer Proxy: Track mouse_pos directly
+                vec2 mousePx = u_mouse_pos;
+                vec2 fragPx = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y); // Invert Y to match screen coords
 
-                // Add noise layers
-                float n = noise(st + u_time * 0.2);
-                n += 0.5 * noise(st * 2.0 - u_time * 0.1);
+                // Calculate physical distance in pixels for the 200px radius
+                float distToMousePx = distance(fragPx, mousePx);
 
-                // Subtle ripple intensity based on proximity to interaction point
-                float rippleIntensity = smoothstep(0.4, 0.0, distToMouse);
-                n += rippleIntensity * 0.3 * sin(distToMouse * 20.0 - u_time * 5.0);
+                // Apply a Distance Function to create the Onyx Ripple
+                // Cursor Reactivity: Radius 200px, Strength: 0.8
+                float rippleRadius = 200.0;
+                float rippleStrength = 0.8;
 
-                // Highlight Color: Silver Chrome (#C8C8C8) / Ghost White (#E8E8E8)
-                vec3 highlightColor = vec3(0.78, 0.78, 0.78);
+                float rippleIntensity = smoothstep(rippleRadius, 0.0, distToMousePx) * rippleStrength;
 
-                // Blend noise into the base color, keeping it subtle (low GPU usage)
-                // Only applying minimal highlights to maintain the "Black Glass" aesthetic
-                vec3 finalColor = mix(baseColor, highlightColor, n * 0.08);
+                // Add noise layers for fluid simulation
+                float n = noise(st + u_time * 0.1);
+                n += 0.5 * noise(st * 2.0 - u_time * 0.05);
+
+                // Add the displacement map/ripple
+                n += rippleIntensity * 0.4 * sin(distToMousePx * 0.05 - u_time * 5.0);
+
+                // Highlight Color: Silver Chrome (#C8C8C8)
+                vec3 highlightColor = vec3(0.784, 0.784, 0.784);
+
+                // Reveal Silver Chrome shimmer in the wake
+                float shimmerMix = (n * 0.08) + (rippleIntensity * 0.15);
+                vec3 finalColor = mix(baseColor, highlightColor, clamp(shimmerMix, 0.0, 1.0));
 
                 // Output final fragment color
                 gl_FragColor = vec4(finalColor, 1.0);
@@ -268,7 +279,7 @@ export class OnyxMotionController {
         const timeLoc = gl.getUniformLocation(this.program, "u_time");
         gl.uniform1f(timeLoc, this.time);
 
-        const mouseLoc = gl.getUniformLocation(this.program, "u_mouse");
+        const mouseLoc = gl.getUniformLocation(this.program, "u_mouse_pos");
         // Adjust mouse position for DPI scaling
         gl.uniform2f(mouseLoc, this.mousePosition.x * window.devicePixelRatio, this.mousePosition.y * window.devicePixelRatio);
 
