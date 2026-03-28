@@ -1,0 +1,122 @@
+// Project Onyx - Glassmorphism UI Framework Styles
+// Strict adherence to the Black Glassmorphism aesthetic and performance requirements.
+
+:root {
+  // Onyx Color Palette Strict Adherence
+  --color-bg-deep-black: #080808;
+  --color-panel-glass-ultra: rgba(255, 255, 255, 0.03);
+  --color-text-silver-chrome: #C8C8C8;
+  --color-text-ghost-white: #E8E8E8;
+  --color-border-stone-gray: #444444;
+
+  // Architectural Constraints: Hardware Acceleration Only
+  --transition-ultra-fast: 0.1s cubic-bezier(0.25, 1, 0.5, 1); // 144Hz smoothness
+  --transition-fluid: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Global reset and foundation
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; // We manage scroll via Canvas/WebGL for Velocity Scrolling
+  background-color: var(--color-bg-deep-black);
+  color: var(--color-text-silver-chrome);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Glass Deck (Z-Depth Tab Stacking) Container
+.onyx-glass-deck {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1500px; // Provide 3D depth for tab stacking
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+// The Glass Panel Base Component
+.onyx-glass-panel {
+  position: relative;
+
+  // High-end Aesthetics without heavy backdrop-filter (WebGL handles the heavy blur)
+  background: var(--color-panel-glass-ultra);
+  border: 1px solid var(--color-border-stone-gray);
+  border-radius: 16px; // Physical object feel
+
+  // Hardware accelerated transformations
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: transform var(--transition-fluid), opacity var(--transition-ultra-fast);
+
+  // Subtle inner shadow to mimic glass thickness
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05),
+              0 10px 30px rgba(0,0,0,0.5);
+
+  color: var(--color-text-ghost-white);
+  padding: 24px;
+
+  // Z-index Layering System
+  &.layer-1 { z-index: 100; transform: translateZ(0px); }
+  &.layer-2 { z-index: 200; transform: translateZ(50px); }
+  &.layer-3 { z-index: 300; transform: translateZ(100px); }
+  &.layer-agent { z-index: 9999; transform: translateZ(200px); }
+
+  &:hover {
+    // Subtle lift interaction
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+// Hyper-Focus Mode
+.onyx-hyper-focus {
+  .onyx-glass-panel:not(.active-content) {
+    opacity: 0.1; // Dim non-essential elements to Deep Black
+    pointer-events: none;
+    filter: grayscale(100%);
+  }
+}
+
+// The "Onyx Layer" Sidebar (Jules Agent Host)
+.onyx-sidebar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 320px;
+  background: var(--color-panel-glass-ultra);
+  border-left: 1px solid var(--color-border-stone-gray);
+  transform: translateX(100%);
+  transition: transform var(--transition-fluid);
+  z-index: var(--layer-agent);
+
+  &.retracted {
+    transform: translateX(0); // Slide in
+  }
+}
+
+// Ghost White "Zen-Bar"
+.onyx-zen-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 4px;
+  background-color: var(--color-text-ghost-white);
+  border-radius: 2px;
+  opacity: 0.5;
+  transition: opacity var(--transition-ultra-fast), width var(--transition-fluid);
+
+  &:hover {
+    opacity: 1;
+    width: 45%;
+  }
+}
